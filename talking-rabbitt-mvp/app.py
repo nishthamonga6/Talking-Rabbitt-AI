@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import pickle
 import os
 import numpy as np
@@ -289,6 +288,13 @@ elif menu == "Analytics Dashboard":
     if numeric:
         y_col = st.selectbox("Y Axis", numeric)
 
+    # Lazy import of plotly to avoid app failing before dependencies install
+    try:
+        import plotly.express as px  # type: ignore
+    except ImportError:
+        st.error("Plotly is not installed yet. Please wait for the app to finish installing dependencies and refresh.")
+        return
+
     fig = None
 
     if chart_type in ["Bar", "Line", "Scatter", "Box"] and not numeric:
@@ -391,15 +397,25 @@ Example questions:
 
             elif "trend" in q:
                 if numeric:
-                    fig = px.line(df, y=numeric[0])
-                    st.plotly_chart(fig)
+                    try:
+                        import plotly.express as px  # type: ignore
+                    except ImportError:
+                        st.write("Plotly is still installing. Please refresh in a moment.")
+                    else:
+                        fig = px.line(df, y=numeric[0])
+                        st.plotly_chart(fig)
                 else:
                     st.write("This dataset has no numeric columns to plot a trend.")
 
             elif "distribution" in q:
                 if numeric:
-                    fig = px.box(df, y=numeric[0])
-                    st.plotly_chart(fig)
+                    try:
+                        import plotly.express as px  # type: ignore
+                    except ImportError:
+                        st.write("Plotly is still installing. Please refresh in a moment.")
+                    else:
+                        fig = px.box(df, y=numeric[0])
+                        st.plotly_chart(fig)
                 else:
                     st.write("This dataset has no numeric columns to show a distribution.")
 
@@ -409,11 +425,14 @@ Example questions:
                     cat = categorical[0]
                     num = numeric[0]
 
-                    chart = df.groupby(cat)[num].sum().reset_index()
-
-                    fig = px.bar(chart, x=cat, y=num)
-
-                    st.plotly_chart(fig)
+                    try:
+                        import plotly.express as px  # type: ignore
+                    except ImportError:
+                        st.write("Plotly is still installing. Please refresh in a moment.")
+                    else:
+                        chart = df.groupby(cat)[num].sum().reset_index()
+                        fig = px.bar(chart, x=cat, y=num)
+                        st.plotly_chart(fig)
                 else:
                     st.write("Need at least one categorical and one numeric column to plot 'by' charts.")
 
