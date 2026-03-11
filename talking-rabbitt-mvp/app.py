@@ -7,7 +7,8 @@ import numpy as np
 
 st.set_page_config(page_title="Rabbit AI", layout="wide")
 
-DATA_FILE = "datasets.pkl"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "datasets.pkl")
 
 
 # ===============================
@@ -288,22 +289,40 @@ elif menu == "Analytics Dashboard":
     if numeric:
         y_col = st.selectbox("Y Axis", numeric)
 
-    if chart_type == "Bar" and y_col:
-        fig = px.bar(df, x=x_col, y=y_col)
+    fig = None
 
-    elif chart_type == "Line" and y_col:
-        fig = px.line(df, x=x_col, y=y_col)
+    if chart_type in ["Bar", "Line", "Scatter", "Box"] and not numeric:
+        st.warning("This chart type requires at least one numeric column.")
+    else:
+        if chart_type == "Bar":
+            if y_col:
+                fig = px.bar(df, x=x_col, y=y_col)
+            else:
+                st.warning("Please select a numeric Y axis for the bar chart.")
 
-    elif chart_type == "Scatter" and y_col:
-        fig = px.scatter(df, x=x_col, y=y_col)
+        elif chart_type == "Line":
+            if y_col:
+                fig = px.line(df, x=x_col, y=y_col)
+            else:
+                st.warning("Please select a numeric Y axis for the line chart.")
 
-    elif chart_type == "Histogram":
-        fig = px.histogram(df, x=x_col)
+        elif chart_type == "Scatter":
+            if y_col:
+                fig = px.scatter(df, x=x_col, y=y_col)
+            else:
+                st.warning("Please select a numeric Y axis for the scatter plot.")
 
-    elif chart_type == "Box" and y_col:
-        fig = px.box(df, x=x_col, y=y_col)
+        elif chart_type == "Histogram":
+            fig = px.histogram(df, x=x_col)
 
-    st.plotly_chart(fig, use_container_width=True)
+        elif chart_type == "Box":
+            if y_col:
+                fig = px.box(df, x=x_col, y=y_col)
+            else:
+                st.warning("Please select a numeric Y axis for the box plot.")
+
+    if fig is not None:
+        st.plotly_chart(fig, use_container_width=True)
 
 
 # ===============================
@@ -358,30 +377,45 @@ Example questions:
 
         with st.chat_message("assistant"):
 
-            if "total" in q and numeric:
-                st.write(df[numeric].sum())
+            if "total" in q:
+                if numeric:
+                    st.write(df[numeric].sum())
+                else:
+                    st.write("This dataset has no numeric columns to calculate totals.")
 
             elif "average" in q:
-                st.write(df[numeric].mean())
+                if numeric:
+                    st.write(df[numeric].mean())
+                else:
+                    st.write("This dataset has no numeric columns to calculate averages.")
 
             elif "trend" in q:
-                fig = px.line(df, y=numeric[0])
-                st.plotly_chart(fig)
+                if numeric:
+                    fig = px.line(df, y=numeric[0])
+                    st.plotly_chart(fig)
+                else:
+                    st.write("This dataset has no numeric columns to plot a trend.")
 
             elif "distribution" in q:
-                fig = px.box(df, y=numeric[0])
-                st.plotly_chart(fig)
+                if numeric:
+                    fig = px.box(df, y=numeric[0])
+                    st.plotly_chart(fig)
+                else:
+                    st.write("This dataset has no numeric columns to show a distribution.")
 
-            elif "by" in q and categorical and numeric:
+            elif "by" in q:
 
-                cat = categorical[0]
-                num = numeric[0]
+                if categorical and numeric:
+                    cat = categorical[0]
+                    num = numeric[0]
 
-                chart = df.groupby(cat)[num].sum().reset_index()
+                    chart = df.groupby(cat)[num].sum().reset_index()
 
-                fig = px.bar(chart, x=cat, y=num)
+                    fig = px.bar(chart, x=cat, y=num)
 
-                st.plotly_chart(fig)
+                    st.plotly_chart(fig)
+                else:
+                    st.write("Need at least one categorical and one numeric column to plot 'by' charts.")
 
             else:
 
