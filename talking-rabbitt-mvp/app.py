@@ -292,40 +292,44 @@ elif menu == "Analytics Dashboard":
     try:
         import plotly.express as px  # type: ignore
     except ImportError:
-        st.error("Plotly is not installed yet. Please wait for the app to finish installing dependencies and refresh.")
-        return
+        st.error(
+            "Plotly is not installed yet. Please wait for the app to finish "
+            "installing dependencies and refresh."
+        )
+        px = None
 
     fig = None
 
-    if chart_type in ["Bar", "Line", "Scatter", "Box"] and not numeric:
-        st.warning("This chart type requires at least one numeric column.")
-    else:
-        if chart_type == "Bar":
-            if y_col:
-                fig = px.bar(df, x=x_col, y=y_col)
-            else:
-                st.warning("Please select a numeric Y axis for the bar chart.")
+    if px is not None:
+        if chart_type in ["Bar", "Line", "Scatter", "Box"] and not numeric:
+            st.warning("This chart type requires at least one numeric column.")
+        else:
+            if chart_type == "Bar":
+                if y_col:
+                    fig = px.bar(df, x=x_col, y=y_col)
+                else:
+                    st.warning("Please select a numeric Y axis for the bar chart.")
 
-        elif chart_type == "Line":
-            if y_col:
-                fig = px.line(df, x=x_col, y=y_col)
-            else:
-                st.warning("Please select a numeric Y axis for the line chart.")
+            elif chart_type == "Line":
+                if y_col:
+                    fig = px.line(df, x=x_col, y=y_col)
+                else:
+                    st.warning("Please select a numeric Y axis for the line chart.")
 
-        elif chart_type == "Scatter":
-            if y_col:
-                fig = px.scatter(df, x=x_col, y=y_col)
-            else:
-                st.warning("Please select a numeric Y axis for the scatter plot.")
+            elif chart_type == "Scatter":
+                if y_col:
+                    fig = px.scatter(df, x=x_col, y=y_col)
+                else:
+                    st.warning("Please select a numeric Y axis for the scatter plot.")
 
-        elif chart_type == "Histogram":
-            fig = px.histogram(df, x=x_col)
+            elif chart_type == "Histogram":
+                fig = px.histogram(df, x=x_col)
 
-        elif chart_type == "Box":
-            if y_col:
-                fig = px.box(df, x=x_col, y=y_col)
-            else:
-                st.warning("Please select a numeric Y axis for the box plot.")
+            elif chart_type == "Box":
+                if y_col:
+                    fig = px.box(df, x=x_col, y=y_col)
+                else:
+                    st.warning("Please select a numeric Y axis for the box plot.")
 
     if fig is not None:
         st.plotly_chart(fig, use_container_width=True)
